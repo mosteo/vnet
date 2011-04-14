@@ -1,0 +1,13 @@
+vHub is a virtual system which let the system routes / drops / delays the
+message, at an high level (in the ISO stack).
+
+In a first step, we plan to implement it to deal with :
+	- a protocol on top of YARP [1]
+	- using a world representation using Morse [2].
+
+It will be extendable in the two directions, dealing with different protocols,
+and using world representation from different source. It will be configurable
+to select defined policies, or new alea for routing too.
+
+[1] http://eris.liralab.it/yarp/
+[2] http://morse.openrobots.org
