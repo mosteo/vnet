@@ -87,21 +87,31 @@ In this case, the vProxy queries the MORSE instance in order to determine if the
 
 \subsection{Experiment with guaranteed communication backbone}
 
-In the case of ACTION, there is a monitoring network that guarantees communications among agents. Thus, the same setup as in a centralized simulation can be used, if desired. This simplifies the logging and synchronization implementation.
+In the case of ACTION, there is a monitoring network that guarantees communications among agents. This network is not intended for direct agent use, but to guarantee full monitoring and control of the experiment. The vNet then simulates any lossy network model during experiments. The existence of this network, however, makes possible the use of the same setup as in a centralized simulation, if desired. This simplifies the logging and synchronization implementation (which can happen at a central place).
+
+\subsection{Decentralized vNet simulation}
+
+As a preparatory step for totally distributed execution in ROSACE, the following schema could be used:
+
+\begin{center}
+\includegraphics[width=0.666\columnwidth]{figures/distrib+morse}
+\end{center}
+
+Note that MORSE instances can be one (currently) or many (in the future). Since, in the case of multiple MORSE instances, it is expected that they all will have synchronized views of robots state, vProxies could connect to any available MORSE instance without need for changes.
 
 \subsection{Distributed experiment without guaranteed communication}
 
-In the more general case (and in ROSACE in particular), communication cannot be guaranteed among agents.
+In the more general case (and in ROSACE in particular), communication cannot be guaranteed among agents:
 
 \begin{center}
 \includegraphics[width=0.666\columnwidth]{figures/distrib}
-\end{center}t
+\end{center}
 
-The cloud in the previous figure represents the actual network being used to communicate the agents. This network is provided by the communication services of work package 5.
+The cloud in the previous figure represents the actual network being used to communicate the agents. This network is provided by the communication services of work package ?.
 
 \section{Class diagram for the general case.}
 
-Here is an schema that depicts all envisioned entities and interactions, both visible to agents and invisible (implementation related).
+Here is an schema that depicts all envisioned entities and interactions, both visible to agents and invisible (implementation related). As a tentative design diagram, these entities are abstract classes whose particular instances could be defined in some configuration file, for example, or given via command-line parameters.
 
 (To be done)
 %TODO: full schema
