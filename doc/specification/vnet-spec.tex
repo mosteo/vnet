@@ -27,7 +27,7 @@
 
 \section{Introduction \& scope.}
 
-This document defines terminology used in the design and implementation of the virtual network component in the ACTION and ROSACE projects. It also describes the relationships among processes running during simulation, real missions and mixed experiments. This network is 'virtual' because it provides to agents a unified view of the transport layer, which can be internally be implemented by a number of different means, ranging from entirely simulated models to different real bridged networks using sophisticated routing protocols. 
+This document defines the terminology used in the design and implementation of the virtual network component in the ACTION and ROSACE projects. It also describes the relationships among processes running during simulation, real missions and mixed experiments. This network is 'virtual' because it provides to agents a unified view of the transport layer, which can be internally implemented by a number of different means, ranging from entirely simulated models to different real bridged networks using sophisticated routing protocols. 
 
 By using this virtual network, the following objectives are achieved:
 
@@ -46,7 +46,7 @@ By using this virtual network, the following objectives are achieved:
 
 \section{Definitions.}
 
-Some terms that have a precise meaning in the descriptions that will follow are defined here. These definitions will be further expanded within their respective contexts.
+Some terms that have a precise meaning in the descriptions that follow are defined here. These definitions will be further expanded within their respective contexts.
 
 \begin{description}
     \newcommand{\define}[2]{\item[#1:]\hfill\\#2.}
@@ -57,7 +57,7 @@ Some terms that have a precise meaning in the descriptions that will follow are 
     
     \define{vNet}{Virtual network being deployed. This comprises all processes that simulate or implement the actual data transport layer, from message sending to delivery. This virtual network provides all necessary networking facilities to agents in the context of the ACTION and ROSACE projects}
     
-    \define{vProxy}{An entity locally available to every agent, which provides the API necessary to make use of the vNet. All interactions between an agent and the vNet are done through a vProxy. The vProxy is local to the agent in the sense that this link can be always established and should never fail (e.g. processes running in the same machine, or in different machines connected by reliable means. In particular, the first version of the vNet will use YARP for the interaction agent-vProxy, and thus permits that agent and vProxy are not in the same machine, as long as they are under the same YARP nameserver}
+    \define{vProxy}{An entity locally available to every agent, which provides the API necessary to make use of the vNet. All interactions between an agent and the vNet are done through a vProxy. The vProxy is local to the agent in the sense that this link can be always established and should never fail (e.g. processes running in the same machine, or in different machines connected by reliable means). In particular, the first version of the vNet will use YARP for the interaction agent-vProxy, and thus permits that agent and vProxy are not in the same machine, as long as they are under the same YARP nameserver}
     
     %\define{vHub}{An entity that participates somehow in the internal implementation of the network, contributing to routing}
     
