@@ -90,7 +90,7 @@ In the slightly more complex case of a network model that requires knowledge on 
 
 In this case, the vProxy queries the MORSE instance in order to determine if the messages can be delivered.
 
-\subsection{Experiment with guaranteed communication backbone}
+\subsection{Experiment with guaranteed communication backbone.}
 
 In the case of ACTION, there is a monitoring network that guarantees communications among agents. This network is not intended for direct agent use, but to guarantee full monitoring and control of the experiment. The vNet then simulates any lossy network model during experiments. The existence of this network, however, makes possible the use of the same setup as in a centralized simulation, if desired. This simplifies the logging and synchronization implementation (which can happen at a central place).
 
@@ -100,7 +100,7 @@ As a possible implementation, agents can use YARP to communicate with the single
 \includegraphics[width=0.666\columnwidth]{figures/central+exp}
 \end{center}
 
-\subsection{Decentralized vNet simulation}
+\subsection{Decentralized vNet simulation.}
 
 As a preparatory step for totally distributed execution in ROSACE, the following schema could be used:
 
@@ -110,7 +110,7 @@ As a preparatory step for totally distributed execution in ROSACE, the following
 
 Note that MORSE instances can be one (currently) or many (in the future). Since, in the case of multiple MORSE instances, it is expected that they all will have synchronized views of robots state, vProxies could connect to any available MORSE instance without need for changes.
 
-\subsection{Distributed experiment without guaranteed communication}
+\subsection{Distributed experiment without guaranteed communication.}
 
 In the more general case (and in ROSACE in particular), communication cannot be guaranteed among agents:
 
@@ -118,7 +118,52 @@ In the more general case (and in ROSACE in particular), communication cannot be 
 \includegraphics[width=0.666\columnwidth]{figures/distrib}
 \end{center}
 
-The cloud in the previous figure represents the actual network being used to communicate the agents. This network is provided by the communication services of work package ?.
+The cloud in the previous figure represents the actual network being used to
+communicate the agents. This network is provided by the communication services
+of work package ?.
+
+\section{API specification.}
+
+This specification is not given in any particular language. Instead, it is
+intended for discussion and agreement among developers.
+
+\subsection{Functionality for network clients.}
+
+These are destined to users of the network that have no power over the network
+simulation behavior.
+
+\begin{itemize}
+    \item Connection = Open(Transport) : Create a connection over a given
+transport (e.g. TCP, RosaceNet).
+    \item Close(Connection) : Destroy a connection.
+    \item Ok = Send(Connection, Address, Data) : Send data over a connection.
+Address could be dependent on the type of connection (unicast, multicast,
+broadcast).
+    \item (Ok, Address, Data) = Receive(Connection, ShouldBlock) : Receive
+data from a connection.
+\end{itemize}
+
+As is, these roughly correspond to UDP messaging, since there is no fixed
+destination bound to the Connection. Should we be more exhaustive and have
+TCP-like connections bound to a particular destination? E.g:
+
+\begin{itemize}
+    \item BoundConnection = Open(Transport, Address) : Connection to a
+particular destination.
+    \item Close(BoundConnection)
+    \item Ok = Send(BoundConnection, Data)
+    \item (Ok, Data) = Receive(BoundConnection, ShouldBlock)
+\end{itemize}
+
+\subsection{Functionality for control clients.}
+
+These are destined to modify the on-line behavior of the network.
+
+\begin{itemize}
+    \item Control = Open(Transport) : Obtain a controller for a given transport.
+\end{itemize}
+
+Control can be f
 
 \section{Class diagram for the general case.}
 
