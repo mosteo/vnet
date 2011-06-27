@@ -122,6 +122,20 @@ The cloud in the previous figure represents the actual network being used to
 communicate the agents. This network is provided by the communication services
 of work package ?.
 
+\subsection{General diagram covering all cases.}
+
+\begin{center}
+\includegraphics[width=0.666\columnwidth]{figures/vnet-general}
+\end{center}
+
+In this figure, components pertaining to vNet are within the gray silhouette.
+Only the communication channels between vProxies are possibly intrinsically
+lossy (i.e. out of our control in its failure mode).
+
+Here, communication among robots is presumed to use RTI (from the HLA
+paradigm). Additional elements like world model adapters have been omitted for
+clarity.
+
 \section{API specification.}
 
 This specification is not given in any particular language. Instead, it is
@@ -137,8 +151,8 @@ simulation behavior.
 transport (e.g. TCP, RosaceNet).
     \item Close(Connection) : Destroy a connection.
     \item Ok = Send(Connection, Address, Data) : Send data over a connection.
-Address could be dependent on the type of connection (unicast, multicast,
-broadcast).
+Address could be dependent on the capabilities of connection (unicast,
+multicast, broadcast).
     \item (Ok, Address, Data) = Receive(Connection, ShouldBlock) : Receive
 data from a connection.
 \end{itemize}
@@ -157,13 +171,21 @@ particular destination.
 
 \subsection{Functionality for control clients.}
 
-These are destined to modify the on-line behavior of the network.
+These are destined to modify the on-line behavior of the network. Given the
+possibility of large differences about the particularities of involved
+entities, at this stage I suggest a simple ``attribute oriented'' interface
+able to get/set any value for a named entity:
 
 \begin{itemize}
-    \item Control = Open(Transport) : Obtain a controller for a given transport.
+    \item Control = Open(NamedEntity) : Obtain a controller for a given
+transport/filter/etc.
+    \item AttributeList = EnumerateAttributes(Control) : Get a list of the
+valid attributes that can be modified.
+    \item Value = Get(Control, AttributeName) : Retrieve an attribute value.
+    \item Ok = Set(Control, AttributeName, Value) : Modify an attribute.
 \end{itemize}
 
-Control can be f
+Different string/numeric getters/setters could be used.
 
 \section{Class diagram for the general case.}
 
@@ -176,5 +198,9 @@ Figure~\ref{fig:classes} depicts all envisioned entities and interactions, both 
 \caption{Possible classes for an implementation of the vNet.}
 \label{fig:classes}
 \end{sidewaysfigure}
+
+\nocite{Naicken2007}
+\bibliographystyle{plain}
+\bibliography{vnet-spec}
 
 \end{document}

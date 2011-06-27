@@ -1,1 +1,3 @@
-add_executable(vhub main.cpp)
+add_executable(vhub 
+  main.cpp 
+  configurable.cpp)

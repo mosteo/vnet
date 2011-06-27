@@ -1,4 +1,3 @@
 project(vhub)
 
-add_executable(vhub main.cpp)
-
+add_subdirectory(src)
