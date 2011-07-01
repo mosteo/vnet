@@ -1,7 +1,9 @@
 #ifndef vnet_address_h
 #define vnet_address_h
 
+#include <set>
 #include <string>
+#include <boost/shared_ptr.hpp>
 
 namespace vnet {
   
@@ -15,23 +17,50 @@ namespace vnet {
   //  Conceptually equivalent to a port
   
   class Destination {
-    virtual ~Destination(void) = 0;
+    
+  protected:    
+    Destination (const Channel &channel);
+    
+  private:
+    virtual ~Destination(void) { };
+    
+    Channel channel_;
   };
   
   class UnicastDestination : Destination {
+  public:
+    UnicastDestination (const NodeId &id, const Channel &channel);
+    
+  private:
+    NodeId id_;
   };
   
+  typedef std::set<NodeId> NodeGroup;
+  
   class MulticastDestination : Destination {
+  public:
+    MulticastDestination (const NodeGroup &group, const Channel &channel);
+    
+  private:
+    NodeGroup group_;
   };
   
   class BroadcastDestination : Destination {
+  public:
+    BroadcastDestination (const Channel &channel);
   };
   
-  //  An address is an identifier for a machine in a network.
-  //  E.g. the IP host for TCP/UDP
-  class AbstractAddress {
+  typedef boost::shared_ptr<Destination> DestinationRef;
+  // Some of the above
+  
+  //  An address is an endpoint for a machine in a network.
+  //  E.g. the IP:Port combination for TCP/UDP
+  class Address {
   public:
-    virtual ~AbstractAddress(void) = 0;
+
+  private:
+    Address () { }; // Private so no instances
+    virtual ~Address () { };
   };
 
 }

@@ -1,4 +1,4 @@
 [Project]
-Name=vHub
 Manager=KDevCMakeManager
+Name=vnet
 VersionControl=kdevgit

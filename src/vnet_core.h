@@ -1,38 +1,60 @@
 #ifndef vnet_core_h_
 #define vnet_core_h_
 
+#include <boost/shared_ptr.hpp>
+#include <vector>
 #include "vnet_address.h"
+#include "vnet_client.h"
+#include "vnet_message.h"
 
 namespace vnet {
 
 // A stage is a pluggable network piece (filter, transport).
+// In the sender side, the message travels following the Stage.send method.
+// In the receiving side, the message travels following the Stage received method.
+
 class Stage {
-  
 public:
-  virtual void Send (const Destination &dest) = 0;
+  Stage () : upstream_ (NULL), downstream_ (NULL) { };
   
-  virtual ~Stage(void) = 0;
+  virtual void send     (const Message &msg, const MessageMetadata &meta) = 0;
+  virtual void received (const Message &msg, const MessageMetadata &meta) = 0;
   
-private:
-  static Stage * Create(const StageConfig &config) = 0;
-  //  Creation procedure that should perform any necessary configuration on this stage.
+  virtual ~Stage() { };
   
+protected:
+  void set_frontend (Stage &upstream);
+  void set_backend  (Stage &downstream);
+  
+private:  
+  Stage *upstream_  ;
+  Stage *downstream_;
 };
 
 // A filter is intended to receive a message and selectively drop it if necessary
-class Filter : Stage {
+class Filter : public Stage {
 
 public:  
-  void SetBackend (Stage *backend);
-
-private:
-  Stage *backend_; // Where to pass along a message
-  
+  Filter (Stage &backend);
+  // To build a chain from downstream towards upstream  
 };
 
 // A transport is a special stage in the sense that it is at the end of a stage chain. 
 // It is intended to actually pass along over a message to a (possibly) remote endpoint.
-class Transport : Stage {
+class Transport : public Stage {
+};
+
+// The network is the frontend for client connections.
+class Network : Stage {
+public:
+  Network (Stage &backend) {};
+  // Simple constructor for testing with a single backend
+  
+  void send (const LocalClientConnection &sender, const Destination dest, const Message &msg);
+  
+  virtual void send     (const Message &msg, const MessageMetadata &meta) {};
+  virtual void received (const Message &msg, const MessageMetadata &meta) {};
+  
 };
 
 }
