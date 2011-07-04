@@ -17,19 +17,19 @@ namespace vnet {
   //  Conceptually equivalent to a port
   
   class Destination {
-    
-  protected:    
-    Destination (const Channel &channel);
-    
-  private:
+  public:
     virtual ~Destination(void) { };
     
+  protected:    
+    Destination (const Channel &channel) : channel_ (channel) {};
+    
+  private:    
     Channel channel_;
   };
   
-  class UnicastDestination : Destination {
+  class UnicastDestination : public Destination {
   public:
-    UnicastDestination (const NodeId &id, const Channel &channel);
+    UnicastDestination (const NodeId &id, const Channel &channel) : Destination (channel), id_ (id) {};
     
   private:
     NodeId id_;
@@ -37,7 +37,7 @@ namespace vnet {
   
   typedef std::set<NodeId> NodeGroup;
   
-  class MulticastDestination : Destination {
+  class MulticastDestination : public Destination {
   public:
     MulticastDestination (const NodeGroup &group, const Channel &channel);
     
@@ -45,12 +45,12 @@ namespace vnet {
     NodeGroup group_;
   };
   
-  class BroadcastDestination : Destination {
+  class BroadcastDestination : public Destination {
   public:
     BroadcastDestination (const Channel &channel);
   };
   
-  typedef boost::shared_ptr<Destination> DestinationRef;
+  // typedef boost::shared_ptr<Destination> DestinationRef;
   // Some of the above
   
   //  An address is an endpoint for a machine in a network.

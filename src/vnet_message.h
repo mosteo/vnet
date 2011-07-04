@@ -13,16 +13,25 @@ namespace vnet {
   //  Addressing of the packet
   class MessageMetadata {
   public:
-    MessageMetadata (const NodeId sender, const DestinationRef &receiver);
+    MessageMetadata (const NodeId sender, const Destination & receiver) : sender_ (sender), receiver_ (receiver) {};
     
     const NodeId & sender () const;    
-    const DestinationRef & receiver () const;
+    const Destination & receiver () const;
     
   private:
     
-    NodeId         sender_;
-    DestinationRef receiver_;
+    const NodeId       sender_;
+    const Destination &receiver_;
     
+  };
+  
+  class Parcel { 
+  public:
+    Parcel (const Message &msg, const MessageMetadata &meta) : msg_ (msg), meta_ (meta) {};
+    
+  private:
+    Message         msg_;
+    MessageMetadata meta_;
   };
   
 }
