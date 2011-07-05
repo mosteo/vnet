@@ -5,6 +5,7 @@
 #include "vnet_address.h"
 #include "vnet_stage.h"
 #include "vnet_message.h"
+#include "vnet_support.h"
 
 namespace vnet {
   
@@ -16,11 +17,11 @@ namespace vnet {
     
     void send (const Destination &dest, const Message &msg);
     
-    const NodeId & node_id () const { return id_; } ;        
+    ParcelRef receive (bool block = true);
+    // Remove a parcel from the received queue.
+    // ParcelRef will be null if nothing available and !block
     
-    void dispatcher();
-    //  To be started in a new thread upon connection creation
-    //  This thread calls the client for any newly received msg.
+    const NodeId & node_id () const { return id_; } ;        
     
     virtual ~LocalClientConnection () {};
     
@@ -30,7 +31,7 @@ namespace vnet {
     
     NodeId id_;
     
-    std::vector<Parcel> msgs;
+    QueueMonitor<ParcelRef> msgs_;
   };
 
 typedef boost::shared_ptr<LocalClientConnection> LocalClientConnectionRef;

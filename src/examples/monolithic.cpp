@@ -1,4 +1,5 @@
 #include <boost/array.hpp>
+#include <boost/cast.hpp>
 #include <boost/random.hpp>
 #include <boost/thread.hpp>
 #include <exception>
@@ -26,52 +27,76 @@ private:
   int i_;
 };
 
-boost::array<NodeId, 2> nodes = { {"Ari", "Ben"} };
+const NodeId sender_id   = "Ari";
+const NodeId receiver_id = "Ben";
 
 const Channel channel = "monotest";
 
-void client(int index) {
+void sender () {
   
   try {
   
-    const NodeId id (nodes.at (index));
-  
-    std::cout << "Client " << id << " starting..." << std::endl;
+    std::cout << "Sender starting..." << std::endl;
     
-    LocalClientConnectionRef conn = net.open (id);
+    LocalClientConnectionRef conn = net.open (sender_id, channel);
     
     boost::mt19937 gen (std::time(0));
     boost::uniform_int<> dist (350, 750);
     boost::variate_generator<boost::mt19937 &, boost::uniform_int<> > rnd (gen, dist);
     
     while (true) {
-	const int pause = rnd();
-	
-	boost::this_thread::sleep
-	  (boost::posix_time::milliseconds
-	    (pause));
-	  
-	conn->send (UnicastDestination (nodes.at (1 - index), channel), IntMessage (pause));
+        const int pause = rnd();
+        
+        boost::this_thread::sleep
+          (boost::posix_time::milliseconds
+            (pause));
+          
+        conn->send (UnicastDestination (receiver_id, channel), IntMessage (pause));
     }
     
   } 
   catch (std::exception &e) {
-    std::cout << "Exception [client]: " << e.what() << std::endl;
+    std::cout << "Exception [sender]: " << e.what () << std::endl;
   }
   catch (...) {
     std::cout << "Unknown exception." << std::endl;
   }
 }
 
+void receiver () {
+    try {
+        
+        std::cout << "Receiver starting..." << std::endl;
+        
+        LocalClientConnectionRef conn = net.open (receiver_id, channel);
+        
+        while (true) {            
+            const ParcelRef parcel = conn->receive ();
+            std::cout << "Sender " << 
+                parcel->metadata ().sender ()
+                << " slept " << 
+                static_cast<const IntMessage &> (parcel->message ()).get ()
+                << " milliseconds" << std::endl;
+        }
+        
+    } 
+    catch (std::exception &e) {
+        std::cout << "Exception [receiver]: " << e.what () << std::endl;
+    }
+    catch (...) {
+        std::cout << "Unknown exception." << std::endl;
+    }
+}
+
 int main(int argc, char **argv) {
   
     std::cout << "vNet started, accepting connections..." << std::endl;
     
-    boost::thread client1 (client, 0);
-    boost::thread client2 (client, 1);
+    boost::thread sender1   (sender);
+    boost::thread receiver1 (receiver);
     
-    client1.join();
-    client2.join();
+    sender1.join();
+    receiver1.join();
     
     return 0;
 }

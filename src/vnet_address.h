@@ -18,13 +18,14 @@ namespace vnet {
   
   class Destination {
   public:
+    Channel channel () const { return channel_; };
     virtual ~Destination(void) { };
     
   protected:    
     Destination (const Channel &channel) : channel_ (channel) {};
     
-  private:    
-    Channel channel_;
+  private:
+    Channel      channel_;
   };
   
   class UnicastDestination : public Destination {

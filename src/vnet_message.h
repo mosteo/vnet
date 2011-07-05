@@ -15,8 +15,8 @@ namespace vnet {
   public:
     MessageMetadata (const NodeId sender, const Destination & receiver) : sender_ (sender), receiver_ (receiver) {};
     
-    const NodeId & sender () const;    
-    const Destination & receiver () const;
+    const NodeId      & sender   () const { return sender_; };    
+    const Destination & receiver () const { return receiver_; };
     
   private:
     
@@ -27,12 +27,19 @@ namespace vnet {
   
   class Parcel { 
   public:
-    Parcel (const Message &msg, const MessageMetadata &meta) : msg_ (msg), meta_ (meta) {};
+    Parcel (const Message &msg, const MessageMetadata &meta) : msg_ (new Message (msg)), meta_ (new MessageMetadata (meta)) {};
+    
+    const Message         &message  () const { return *msg_; };
+    const MessageMetadata &metadata () const { return *meta_; };
     
   private:
-    Message         msg_;
-    MessageMetadata meta_;
+    // This is the first place where the message is copied, since there can be arbitrary time between delivery and processing
+    boost::shared_ptr<Message>         msg_;
+    boost::shared_ptr<MessageMetadata> meta_;
   };
+  
+  typedef boost::shared_ptr<Parcel> ParcelRef; 
+  // Premature optimization most likely but also useful since the client will keep a ref while the queued one is dropped
   
 }
 

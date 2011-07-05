@@ -22,8 +22,8 @@ public:
   void set_downstream (Stage &downstream) { downstream_ = &downstream; };
 
 protected:
-  Stage *upstream()   { return upstream_;   };
-  Stage *downstream() { return downstream_; };
+  Stage *upstream()   const { return upstream_;   };
+  Stage *downstream() const { return downstream_; };
   
 private:  
   Stage *upstream_  ;
@@ -38,10 +38,10 @@ public:
   virtual void received (const Message &msg, const MessageMetadata &meta);
   
 private:
-  virtual bool accept_send    (const Message &msg, const MessageMetadata &meta) = 0;
+  virtual bool accept_send    (const Message &msg, const MessageMetadata &meta) const = 0;
   // Override this with the actual test against the message when sending
   
-  virtual bool accept_receive (const Message &msg, const MessageMetadata &meta) = 0;
+  virtual bool accept_receive (const Message &msg, const MessageMetadata &meta) const = 0;
   // Override this with the actual test against the message when receiving
   // Usually a test on sending should be enough.
 };
