@@ -9,6 +9,8 @@ namespace vnet {
 
 // Support classes to be used elsewhere
 
+    //  Thread-safe queue
+    //  Note that for non-blocking pop, the result will be sliced to the base Datum class!!
     template<typename Datum>
     class QueueMonitor : boost::noncopyable {
     public:
@@ -28,7 +30,7 @@ namespace vnet {
 ////////////////////////////////
 // IMPLEMENTATION BEGINS HERE //
 ////////////////////////////////
-// can't believe C++ requires this...
+// can't believe C++ still requires impl in headers...
 
 template <typename Datum>
 void vnet::QueueMonitor<Datum>::push(const Datum& datum)

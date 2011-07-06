@@ -29,22 +29,19 @@ private:
   int i_;
 };
 
-boost::array<NodeId, 2> sender_ids   = {{"Ari", "Ben"}};
-const NodeId receiver_id = "Zak";
+boost::array<NodeId, 2> receiver_ids = {{"Ari", "Ben"}};
+const NodeId            sender_id    = "Zak";
 
-const Channel channel = "monotest";
+const Channel channel = "broadtest";
 
-void sender (int index) {
+void sender () {
   
-  try {
-      
-    const NodeId sender_id = sender_ids.at (index);
-  
+  try {          
     std::cout << "Sender " << sender_id << " starting..." << std::endl;
     
     LocalClientConnectionRef conn = net.open (sender_id, channel);
     
-    boost::mt19937 gen (index);
+    boost::mt19937 gen (std::time (0));
     boost::uniform_int<> dist (350, 750);
     boost::variate_generator<boost::mt19937 &, boost::uniform_int<> > rnd (gen, dist);
     
@@ -57,7 +54,7 @@ void sender (int index) {
           (boost::posix_time::milliseconds
             (pause));
         
-        conn->send (receiver_id, channel, IntMessage (pause));
+        conn->broadcast (channel, IntMessage (pause));
     }
     
   } 
@@ -69,18 +66,22 @@ void sender (int index) {
   }
 }
 
-void receiver () {
+void receiver (int index) {
     try {
         
-        std::cout << "Receiver starting..." << std::endl;
+        const NodeId receiver_id = receiver_ids.at (index);        
+        
+        std::cout << "Receiver " << receiver_id << " starting..." << std::endl;
         
         LocalClientConnectionRef conn = net.open (receiver_id, channel);
         
         while (true) {            
             const ParcelRef parcel = conn->receive ();
-            std::cout << "Sender " << 
+            std::cout << 
+                "I (" << receiver_id << 
+                ") heard that sender " << 
                 parcel->envelope ().sender ()
-                << " slept " << 
+                << " slept for " << 
                 boost::polymorphic_downcast<const IntMessage *> (&parcel->message ())->get ()
                 << " milliseconds" << std::endl;
         }
@@ -98,13 +99,13 @@ int main(int argc, char **argv) {
   
     std::cout << "vNet started, accepting connections..." << std::endl;
     
-    boost::thread sender1   (sender, 0);
-    boost::thread sender2   (sender, 1);
-    boost::thread receiver1 (receiver);
+    boost::thread sender1   (sender);
+    boost::thread receiver1 (receiver, 0);
+    boost::thread receiver2 (receiver, 1);
     
-    sender1.join();
-    sender2.join();
+    sender1.  join();
     receiver1.join();
+    receiver2.join();
     
     return 0;
 }

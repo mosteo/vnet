@@ -3,8 +3,4 @@
 
 #include "vnet_core.h"
 
-namespace vnet {
-  
-}
-
 #endif

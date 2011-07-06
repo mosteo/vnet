@@ -10,7 +10,17 @@
 
 namespace vnet {
 
-// The network is the frontend for client connections.
+// The network is the frontend for local (internal) client connections in the vNet process.
+// It basically aggregates all filters and the transport
+
+// This is thread-safe, meaning that as many [id,channel] threads can work concurrently without
+// bottlenecking each other (only opening a new connection blocks everybody else).
+
+// For reception, there's a lock at each [id,channel] connection, meaning that again every client
+// can block on its queue without impacting other clients.
+
+// At least, this is the theory.
+
 class Network : public Stage {
 public:
   Network (Transport &downstream);
@@ -24,6 +34,7 @@ public:
   
 private:
   
+  // Helper class to index open connections
   class IdChannel {
   public:
     IdChannel (NodeId id, Channel channel) : id_ (id), channel_ (channel) {};
@@ -35,15 +46,27 @@ private:
     Channel channel_;
   };
   
-  typedef std::map<IdChannel, LocalClientConnectionRef>  IdConnectionMap;
+  typedef std::map <IdChannel, LocalClientConnectionRef> IdConnectionMap;
   typedef std::pair<IdChannel, LocalClientConnectionRef> IdConnectionElem;
   IdConnectionMap clients_;
-  mutable boost::shared_mutex clients_mutex_;
-  // The collection of clients to dispatch messages to.
-  // Shared read access, unique write access
+  // Collection of all currently connected clients.
+  // Also to be able to dispatch to clients on parcel reception
   
-  Transport *transport_;
-  // In order to be able to call prepare_broadcast through our Addressbook view 
+  typedef std::map <Channel, NodeGroup> ChannelIdsMap;
+  typedef std::pair<Channel, NodeGroup> ChannelIdsElem;
+  ChannelIdsMap channel_clients_; 
+  // To be able to quickly identify nodes for local broadcast.
+  
+  mutable boost::shared_mutex clients_mutex_;
+  // Shared read access, unique write access to these structures, 
+  //   since connection opening should be
+  //   much less frequent than data sending/reception.
+  
+  bool centralized_;
+  // Flag indicating we operate in centralized mode.
+  // When this is true, broadcast is transformed in multicast to all local clients.
+  // Not very happy with this, but in order to keep generality I can't think of anything better,
+  //   since actual broadcast mechanisms are Transport-dependent.
   
 };
 

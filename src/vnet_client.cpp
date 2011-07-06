@@ -1,5 +1,20 @@
 #include "vnet_client.h"
 
+void vnet::LocalClientConnection::send(const vnet::NodeId& dest, const vnet::Channel& channel, const vnet::Message& msg)
+{
+    send (msg, Envelope (id_, Destination (dest, channel)));
+}
+
+void vnet::LocalClientConnection::multicast(const vnet::NodeGroup& dest, const vnet::Channel& channel, const vnet::Message& msg)
+{
+    send (msg, Envelope (id_, Destination (dest, channel)));
+}
+
+void vnet::LocalClientConnection::broadcast(const vnet::Channel& channel, const vnet::Message& msg)
+{
+    send (msg, Envelope (id_, Destination (channel)));
+}
+
 void vnet::LocalClientConnection::send (const vnet::Destination &dest, const vnet::Message& msg)
 {
    this->send (msg, Envelope (id_, dest));

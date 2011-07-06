@@ -1,4 +1,8 @@
-set(CMAKE_CXX_FLAGS "-g -Wall")
+set(CMAKE_CXX_FLAGS "-g -Wall -O2")
+
+find_package(Boost COMPONENTS thread REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIRS})
 
 set(CSD ${CMAKE_CURRENT_SOURCE_DIR}) # Just a shortcut
 
@@ -9,8 +13,9 @@ set(COMMON_SOURCES
     ${CSD}/transports/vnet_localtransport.cpp
 )
 
-add_executable(vhub ${COMMON_SOURCES} main.cpp)
-target_link_libraries(monolithic ${Boost_LIBRARIES})
+set(COMMON_LIBRARIES ${Boost_LIBRARIES})
+
+#add_executable(vhub ${COMMON_SOURCES} main.cpp)
 
 add_subdirectory(transports)
 add_subdirectory(filters)
