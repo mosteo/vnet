@@ -16,6 +16,16 @@ namespace vnet {
     LocalClientConnection (const NodeId &id, Stage &downstream) : Stage (), id_ (id) { set_downstream (downstream); };
     
     void send (const Destination &dest, const Message &msg);
+    //  Generic sending to some destination
+    
+    void send (const NodeId &dest, const Channel &channel, const Message &msg);
+    //  Helper for unicast
+    
+    void send (const NodeGroup &dest, const Channel &channel, const Message &msg);
+    //  Helper for multicast
+    
+    void broadcast (const Channel &channel, const Message &msg);
+    //  Helper for broadcast
     
     ParcelRef receive (bool block = true);
     // Remove a parcel from the received queue.
@@ -26,8 +36,8 @@ namespace vnet {
     virtual ~LocalClientConnection () {};
     
   private:
-    virtual void send     (const Message &msg, const MessageMetadata &meta);  
-    virtual void received (const Message &msg, const MessageMetadata &meta);
+    virtual void send     (const Message &msg, const Envelope &meta);  
+    virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver);
     
     NodeId id_;
     

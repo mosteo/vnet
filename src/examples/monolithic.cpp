@@ -51,7 +51,7 @@ void sender () {
           (boost::posix_time::milliseconds
             (pause));
           
-        conn->send (UnicastDestination (receiver_id, channel), IntMessage (pause));
+        conn->send (receiver_id, channel, IntMessage (pause));
     }
     
   } 
@@ -73,7 +73,7 @@ void receiver () {
         while (true) {            
             const ParcelRef parcel = conn->receive ();
             std::cout << "Sender " << 
-                parcel->metadata ().sender ()
+                parcel->envelope ().sender ()
                 << " slept " << 
                 static_cast<const IntMessage &> (parcel->message ()).get ()
                 << " milliseconds" << std::endl;

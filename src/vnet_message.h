@@ -10,10 +10,10 @@ namespace vnet {
   class Message {
   };
   
-  //  Addressing of the packet
-  class MessageMetadata {
+  //  Addressing metadata of the packet
+  class Envelope {
   public:
-    MessageMetadata (const NodeId sender, const Destination & receiver) : sender_ (sender), receiver_ (receiver) {};
+    Envelope (const NodeId & sender, const Destination & receiver) : sender_ (sender), receiver_ (receiver) {};
     
     const NodeId      & sender   () const { return sender_; };    
     const Destination & receiver () const { return receiver_; };
@@ -27,15 +27,15 @@ namespace vnet {
   
   class Parcel { 
   public:
-    Parcel (const Message &msg, const MessageMetadata &meta) : msg_ (new Message (msg)), meta_ (new MessageMetadata (meta)) {};
+    Parcel (const Message &msg, const Envelope &meta) : msg_ (new Message (msg)), meta_ (new Envelope (meta)) {};
     
-    const Message         &message  () const { return *msg_; };
-    const MessageMetadata &metadata () const { return *meta_; };
+    const Message  &message  () const { return *msg_; };
+    const Envelope &envelope () const { return *meta_; };
     
   private:
     // This is the first place where the message is copied, since there can be arbitrary time between delivery and processing
-    boost::shared_ptr<Message>         msg_;
-    boost::shared_ptr<MessageMetadata> meta_;
+    boost::shared_ptr<Message>  msg_;
+    boost::shared_ptr<Envelope> meta_;
   };
   
   typedef boost::shared_ptr<Parcel> ParcelRef; 

@@ -9,12 +9,16 @@ namespace vnet {
 // In the sender side, the message travels following the Stage.send method.
 // In the receiving side, the message travels following the Stage received method.
 
+// In the sender side, however, the message might be addressed to a group of nodes.
+// It's after the "transport" stage that messages have a single recipient.
+// (The original recipients are however given so a node can know that it's not the only recipient).
+
 class Stage {
 public:
   Stage () : upstream_ (NULL), downstream_ (NULL) { };
   
-  virtual void send     (const Message &msg, const MessageMetadata &meta) = 0;
-  virtual void received (const Message &msg, const MessageMetadata &meta) = 0;
+  virtual void send     (const Message &msg, const Envelope &meta) = 0;
+  virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver) = 0;
   
   virtual ~Stage() { };
   
@@ -34,21 +38,24 @@ private:
 class Filter : public Stage {
 
 public:
-  virtual void send     (const Message &msg, const MessageMetadata &meta);
-  virtual void received (const Message &msg, const MessageMetadata &meta);
+  virtual void send     (const Message &msg, const Envelope &meta);
+  virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver);
   
 private:
-  virtual bool accept_send    (const Message &msg, const MessageMetadata &meta) const = 0;
+  virtual bool accept_send    (const Message &msg, const Envelope &meta) const = 0;
   // Override this with the actual test against the message when sending
   
-  virtual bool accept_receive (const Message &msg, const MessageMetadata &meta) const = 0;
+  virtual bool accept_receive (const Message &msg, const Envelope &meta, const NodeId &receiver) const = 0;
   // Override this with the actual test against the message when receiving
-  // Usually a test on sending should be enough.
 };
 
 // A transport is a special stage in the sense that it is at the end of a stage chain. 
 // It is intended to actually pass along over a message to a (possibly) remote endpoint.
 class Transport : public Stage {
+    virtual DestinationRef prepare_broadcast (const DestinationRef &original_destination) { return original_destination; };
+    //  Used to manage broadcast in the centralized case of vHub.
+    //  This gives a chance to the transport to gather information about current clients. 
+    //  A possible alternative would be to have a backpointer to the Network object, but this will involve locking.
 };
 
 }

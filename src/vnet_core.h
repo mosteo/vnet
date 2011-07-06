@@ -13,14 +13,14 @@ namespace vnet {
 // The network is the frontend for client connections.
 class Network : public Stage {
 public:
-  Network (Stage &downstream);
+  Network (Transport &downstream);
   // Simple constructor for testing with a single transport
   
   LocalClientConnectionRef open (const NodeId &id, const Channel &channel);
   //  Only one client per [id, channel] right now
   
-  virtual void send     (const Message &msg, const MessageMetadata &meta);
-  virtual void received (const Message &msg, const MessageMetadata &meta);
+  virtual void send     (const Message &msg, const Envelope &meta);
+  virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver);
   
 private:
   
@@ -41,6 +41,9 @@ private:
   mutable boost::shared_mutex clients_mutex_;
   // The collection of clients to dispatch messages to.
   // Shared read access, unique write access
+  
+  Transport *transport_;
+  // In order to be able to call prepare_broadcast through our Addressbook view 
   
 };
 

@@ -7,8 +7,8 @@ namespace vnet {
  
   class LocalTransport : public Transport {
   public:
-    virtual void send     (const Message &msg, const MessageMetadata &meta) { received (msg, meta); };
-    virtual void received (const Message &msg, const MessageMetadata &meta) { upstream ()->received (msg, meta); };
+    virtual void send     (const Message &msg, const Envelope &meta);
+    virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver);
   };
   
 }

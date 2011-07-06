@@ -2,15 +2,15 @@
 
 void vnet::LocalClientConnection::send (const vnet::Destination &dest, const vnet::Message& msg)
 {
-   this->send (msg, MessageMetadata (id_, dest));
+   this->send (msg, Envelope (id_, dest));
 }
 
-void vnet::LocalClientConnection::send (const Message &msg, const MessageMetadata &meta)
+void vnet::LocalClientConnection::send (const Message &msg, const Envelope &meta)
 {
   downstream()->send (msg, meta);
 }
 
-void vnet::LocalClientConnection::received(const vnet::Message& msg, const vnet::MessageMetadata& meta)
+void vnet::LocalClientConnection::received(const vnet::Message& msg, const vnet::Envelope& meta, const NodeId &receiver)
 {
     const ParcelRef parcel (new Parcel (msg, meta));
     msgs_.push (parcel);

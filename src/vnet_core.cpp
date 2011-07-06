@@ -1,6 +1,6 @@
 #include "vnet_core.h"
 
-vnet::Network::Network (Stage &downstream) : Stage () 
+vnet::Network::Network (Transport &downstream) : Stage () 
 { 
   set_downstream (downstream); 
   downstream.set_upstream (*this);
@@ -23,12 +23,12 @@ vnet::LocalClientConnectionRef vnet::Network::open(const NodeId &id, const Chann
   }
 }
 
-void vnet::Network::send (const Message &msg, const MessageMetadata &meta)
+void vnet::Network::send (const Message &msg, const Envelope &meta)
 {
   downstream()->send (msg, meta);
 }
 
-void vnet::Network::received(const vnet::Message& msg, const vnet::MessageMetadata& meta)
+void vnet::Network::received(const vnet::Message& msg, const vnet::Envelope& meta, const NodeId &receiver)
 {
     boost::lock_guard<boost::shared_mutex> ro_lock (clients_mutex_);
     
