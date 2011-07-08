@@ -18,7 +18,7 @@ void vnet::LocalTransport::send (const vnet::Message& msg, const vnet::Envelope&
             break;
             
         case Destination::broadcast:
-            throw "Shouldn't happen with local transport";
+            throw std::runtime_error ("Shouldn't happen with local transport");
             //  Because it has been converted into multicast at Network::send
             break;
     }

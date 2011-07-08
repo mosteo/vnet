@@ -76,4 +76,5 @@ void vnet::Network::received(const vnet::Message& msg, const vnet::Envelope& met
     
     if (client != NULL)
         client->received(msg, meta, receiver);
+    //  Otherwise we should log failure I guess.
 }

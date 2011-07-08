@@ -41,7 +41,7 @@ namespace vnet {
         virtual void send     (const Message &msg, const Envelope &meta);
         virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver);
     
-    private:
+    protected:
         virtual bool accept_send    (const Message &msg, const Envelope &meta) const = 0;
         // Override this with the actual test against the message when sending
         
