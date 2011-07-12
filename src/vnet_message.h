@@ -16,14 +16,14 @@ namespace vnet {
   //  Addressing metadata of the packet
   class Envelope {
   public:
-    Envelope (const NodeId & sender, const Destination & receiver) : sender_ (sender), receiver_ (DestinationRef (new Destination (receiver))) {};
+    Envelope (const NodeId & sender, const Destination & receiver) : sender_ (sender), receiver_ (receiver) {};
     
-    const NodeId      & sender   () const { return  sender_; };    
-    const Destination & receiver () const { return *receiver_; };
+    const NodeId      & sender   () const { return sender_; };    
+    const Destination & receiver () const { return receiver_; };
     
   private:    
-    const NodeId         sender_;
-    const DestinationRef receiver_;    
+    const NodeId      sender_;
+    const Destination receiver_;    
   };
   
   // A Parcel aggregates a message with its envelope. Used to simplify internal queues and delivery to client.
