@@ -29,15 +29,15 @@ namespace vnet {
   // A Parcel aggregates a message with its envelope. Used to simplify internal queues and delivery to client.
   class Parcel { 
   public:
-    Parcel (const Message &msg, const Envelope &meta) : msg_ (msg.clone ()), meta_ (new Envelope (meta)) {};
+    Parcel (const Message &msg, const Envelope &meta) : msg_ (msg.clone ()), meta_ (meta) {};
     
     const Message  &message  () const { return *msg_; };
-    const Envelope &envelope () const { return *meta_; };
+    const Envelope &envelope () const { return  meta_; };
     
   private:
     // This is the first place where the message is copied
     boost::shared_ptr<Message>  msg_;
-    boost::shared_ptr<Envelope> meta_;
+    Envelope                    meta_;
   };
   
   typedef boost::shared_ptr<Parcel> ParcelRef; 
