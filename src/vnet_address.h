@@ -1,9 +1,11 @@
 #ifndef vnet_address_h
 #define vnet_address_h
 
+#include <cassert>
 #include <set>
 #include <string>
 #include <boost/shared_ptr.hpp>
+#include <boost/variant.hpp>
 
 namespace vnet {
   
@@ -17,18 +19,21 @@ namespace vnet {
   //  Conceptually equivalent to a port    
     
   //  Not sure yet on how to deal with all central/distrib x transport x multi/broadcast combinations, I need to discuss.
-  //  For the moment this uses a "variant" approach which is not well supported by c++, but...
+  //  For the moment this uses a boost::variant approach.
+  
+  typedef boost::variant<NodeId, NodeGroup> DestinationIds;
+  
   class Destination {    
   public:
     enum Kinds { unicast, multicast, broadcast };
     
-    Destination (const NodeId    &dest, const Channel &channel) : kind_ (unicast),   id_    (dest), channel_ (channel) {};
-    Destination (const NodeGroup &dest, const Channel &channel) : kind_ (multicast), group_ (dest), channel_ (channel) {};
-    Destination (                       const Channel &channel) : kind_ (broadcast),                channel_ (channel) {};
+    Destination (const NodeId    &dest, const Channel &channel) : kind_ (unicast),   ids_ (dest), channel_ (channel) {};
+    Destination (const NodeGroup &dest, const Channel &channel) : kind_ (multicast), ids_ (dest), channel_ (channel) {};
+    Destination (                       const Channel &channel) : kind_ (broadcast),              channel_ (channel) {};
     
     Kinds             kind ()    const { return kind_;    };
-    NodeId            id ()      const { return id_;      };
-    const NodeGroup & group ()   const { return group_;   };
+    NodeId            id ()      const { assert (kind_ == unicast); return boost::get<NodeId>    (ids_); };
+    const NodeGroup & group ()   const { assert (kind_ != unicast); return boost::get<NodeGroup> (ids_); };
     Channel           channel () const { return channel_; };
     
     virtual ~Destination(void) {};
@@ -36,12 +41,9 @@ namespace vnet {
         
   private:
     Kinds           kind_;
-    NodeId          id_;      // Only valid for unicast
-    NodeGroup       group_;   // Only valid for multicast/broadcast
+    DestinationIds  ids_; // Just one in case of unicast.
     Channel         channel_;
   };
-  
-  typedef boost::shared_ptr<Destination> DestinationRef;
 
 }
 
