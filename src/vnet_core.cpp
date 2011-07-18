@@ -43,6 +43,9 @@ vnet::LocalClientConnectionRef vnet::Network::open(const NodeId &id, const Chann
 
 void vnet::Network::send (const Message &msg, const Envelope &meta)
 {
+    //  We don't check downstream() != NULL below because it should be valid after Network construction
+    //  Changes to its value are thread-safe too.
+    
     if (centralized_ && meta.receiver ().kind () == Destination::broadcast) {
         NodeGroup new_clients;
         {
@@ -76,5 +79,6 @@ void vnet::Network::received(const vnet::Message& msg, const vnet::Envelope& met
     
     if (client != NULL)
         client->received(msg, meta, receiver);
+    //  TODO: log message dropped here
     //  Otherwise we should log failure I guess.
 }

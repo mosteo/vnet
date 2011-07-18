@@ -2,6 +2,7 @@
 #define vnet_stage_h_
 
 #include "vnet_message.h"
+#include "vnet_support.h"
 
 namespace vnet {
 
@@ -20,18 +21,20 @@ namespace vnet {
         virtual void send     (const Message &msg, const Envelope &meta) = 0;
         virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver) = 0;        
         
-        void set_upstream   (Stage &upstream)   { upstream_   = &upstream;   };
-        void set_downstream (Stage &downstream) { downstream_ = &downstream; };
+        //  These setters are thread-safe
+        void set_upstream   (Stage &upstream)   { upstream_  .set (&upstream);   };
+        void set_downstream (Stage &downstream) { downstream_.set (&downstream); };
         
         virtual ~Stage() {};
 
     protected:
-        Stage *upstream()   const { return upstream_;   };
-        Stage *downstream() const { return downstream_; };
+        //  These accessors are thread-safe
+        Stage *upstream()   const { return upstream_  .get (); };
+        Stage *downstream() const { return downstream_.get (); };
     
     private:  
-        Stage *upstream_  ;
-        Stage *downstream_;
+        atomic<Stage *> upstream_  ;
+        atomic<Stage *> downstream_;
     };
 
     

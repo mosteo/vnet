@@ -5,6 +5,8 @@
 #include <boost/utility.hpp>
 #include <queue>
 
+template<class _Tp >
+class atomic;
 namespace vnet {
 
 // Support classes to be used elsewhere
@@ -23,6 +25,24 @@ namespace vnet {
         std::queue<Datum>         data_;
         boost::mutex              data_mutex_;
         boost::condition_variable data_available_;
+    };
+    
+    //  Thread-safe data holder.
+    //  Made obsolete by <atomic>, but not yet generally available
+    template<typename Atom>
+    class atomic : boost::noncopyable {
+    public:
+        atomic (const Atom &atom);
+        
+        void set (const Atom &atom);
+        
+        Atom get () const;
+        
+    private:
+        atomic (); 
+        
+        Atom                        atom_;
+        mutable boost::shared_mutex atom_mutex_;
     };
 
 }
@@ -66,6 +86,28 @@ void vnet::QueueMonitor<Datum>::pop_non_blocking(bool& empty, Datum& datum)
         datum = data_.front ();
         data_.pop ();
     }
+}
+
+template <typename Atom>
+vnet::atomic<Atom>::atomic(const Atom& atom)
+{
+    set (atom);
+}
+
+template <typename Atom>
+void vnet::atomic<Atom>::set(const Atom& atom)
+{
+    //  read-write lock_guard
+    boost::unique_lock<boost::shared_mutex> rw_lock (atom_mutex_);
+    atom_ = atom;
+}
+
+template <typename Atom>
+Atom vnet::atomic<Atom>::get() const
+{
+    //  read-shared lock
+    boost::shared_lock<boost::shared_mutex> ro_lock (atom_mutex_);
+    return atom_;
 }
 
 #endif
