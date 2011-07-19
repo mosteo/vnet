@@ -26,13 +26,22 @@ public:
   Network (Transport &downstream);
   // Simple constructor for testing with a single transport
   
+  void push_filter (Filter &filter);
+  // Prepend a filter to the stage chain.
+  // That is, this will be the first to be applied to outbound messages,
+  //   and the last one for incoming messages.
+  // This call is thread-safe and can be used online.
+  
+  Filter * pop_filter ();
+  // Remove first filter in the chain
+  
   LocalClientConnectionRef open (const NodeId &id, const Channel &channel);
   //  Only one client per [id, channel] right now
   
   virtual void send     (const Message &msg, const Envelope &meta);
   virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver);
   
-private:
+private:    
   
   // Helper class to index open connections
   class IdChannel {

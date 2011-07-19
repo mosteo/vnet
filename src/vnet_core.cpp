@@ -1,3 +1,4 @@
+#include <boost/cast.hpp>
 #include "vnet_core.h"
 
 vnet::Network::Network (Transport &downstream) : Stage (), centralized_ (true) 
@@ -5,6 +6,36 @@ vnet::Network::Network (Transport &downstream) : Stage (), centralized_ (true)
   set_downstream (downstream); 
   downstream.set_upstream (*this);
 };
+
+void vnet::Network::push_filter(vnet::Filter& filter)
+{
+    filter.set_downstream (*downstream ());
+    filter.set_upstream   (*this);
+    //  Now the new filter is ready to take over delivery.
+    
+    downstream ()->set_upstream (filter);
+    //  Inbound packets already use the new filter, but outbound not yet.
+    
+    set_downstream (filter);
+    //  Restructuring is complete.
+    
+    //  Given that some filters may rely on being present in both endpoints
+    //    (e.g. a compressing/uncompressing filter),
+    //    these should be set-up off-line.
+}
+
+vnet::Filter * vnet::Network::pop_filter()
+{
+    if (downstream()->downstream() == NULL)
+        throw std::runtime_error ("No filters left to remove");
+    
+    Stage * const old_next = downstream();
+    
+    set_downstream (*downstream()->downstream());
+    downstream()->set_upstream(*this);
+    
+    return boost::polymorphic_downcast<Filter*>(old_next);
+}
 
 vnet::LocalClientConnectionRef vnet::Network::open(const NodeId &id, const Channel &channel)
 {

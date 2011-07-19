@@ -27,7 +27,6 @@ namespace vnet {
         
         virtual ~Stage() {};
 
-    protected:
         //  These accessors are thread-safe
         Stage *upstream()   const { return upstream_  .get (); };
         Stage *downstream() const { return downstream_.get (); };

@@ -4,19 +4,21 @@ find_package(Boost COMPONENTS thread REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 
-set(CSD ${CMAKE_CURRENT_SOURCE_DIR}) # Just a shortcut
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-set(COMMON_SOURCES
-    ${CSD}/vnet_client.cpp
-    ${CSD}/vnet_core.cpp    
-    ${CSD}/vnet_stage.cpp
-    ${CSD}/transports/vnet_localtransport.cpp
+add_library(vnet_common
+            vnet_client.cpp
+            vnet_core.cpp    
+            vnet_stage.cpp
 )
 
-set(COMMON_LIBRARIES ${Boost_LIBRARIES})
+set(COMMON_LIBRARIES
+    vnet_common
+    vnet_filters
+    vnet_transports
+    ${Boost_LIBRARIES}
+)
 
-#add_executable(vhub ${COMMON_SOURCES} main.cpp)
-
-add_subdirectory(transports)
 add_subdirectory(filters)
+add_subdirectory(transports)
 add_subdirectory(examples)

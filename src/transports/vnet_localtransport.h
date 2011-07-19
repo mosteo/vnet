@@ -1,8 +1,8 @@
 #ifndef vnet_localtransport_h_
 #define vnet_localtransport_h_
 
-#include "../vnet_core.h"
-
+#include "vnet_core.h"
+ 
 namespace vnet {
     
     //  Intended to be used in the centralized vNet setup
