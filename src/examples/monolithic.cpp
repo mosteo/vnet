@@ -1,5 +1,3 @@
-#include <boost/array.hpp>
-#include <boost/cast.hpp>
 #include <boost/random.hpp>
 #include <boost/thread.hpp>
 #include <exception>
@@ -16,18 +14,6 @@ using namespace vnet;
 
 LocalTransport local_transport;
 Network        net (local_transport);
-
-class IntMessage : public Message {
-public:
-  IntMessage (int i) { i_ = i; };
-  
-  int get() const { return i_; };
-  
-  virtual IntMessage *clone() const { return new IntMessage (*this); }
-  
-private:
-  int i_;
-};
 
 boost::array<NodeId, 2> sender_ids   = {{"Ari", "Ben"}};
 const NodeId receiver_id = "Zak";
@@ -57,7 +43,7 @@ void sender (int index) {
           (boost::posix_time::milliseconds
             (pause));
         
-        conn->send (receiver_id, channel, IntMessage (pause));
+        conn->send (receiver_id, channel, Message::build<int>(pause));
     }
     
   } 
@@ -78,10 +64,10 @@ void receiver () {
         
         while (true) {            
             const ParcelRef parcel = conn->receive ();
-            std::cout << "Sender " << 
-                parcel->envelope ().sender ()
-                << " slept " << 
-                boost::polymorphic_downcast<const IntMessage *> (&parcel->message ())->get ()
+            std::cout << "Sender "  
+                << parcel->envelope ().sender ()
+                << " slept " 
+                << parcel->message().get<int>()
                 << " milliseconds" << std::endl;
         }
         

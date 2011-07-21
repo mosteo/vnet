@@ -8,7 +8,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(vnet_common
             vnet_client.cpp
-            vnet_core.cpp    
+            vnet_core.cpp  
+            vnet_message.cpp
             vnet_stage.cpp
 )
 
