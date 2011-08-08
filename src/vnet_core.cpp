@@ -1,16 +1,23 @@
 #include <boost/cast.hpp>
 #include "vnet_core.h"
+#include <boost/thread/locks.hpp>
 
-vnet::Network::Network (Transport &downstream) : Stage (), centralized_ (true) 
+vnet::Network::Network (const std::string &transport_name) : Stage (), centralized_ (true) 
 { 
-  set_downstream (downstream); 
-  downstream.set_upstream (*this);
+  Transport *transport = boost::polymorphic_downcast<Transport *>(StageFactory::create(transport_name));    
+  set_downstream (transport); 
+  transport->set_upstream (this);
 };
 
-void vnet::Network::push_filter(vnet::Filter& filter)
+void vnet::Network::push_front (const std::string &filter_name)
 {
-    filter.set_downstream (*downstream ());
-    filter.set_upstream   (*this);
+    Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name));
+ 
+    //  Prevent several stage modifications simultaneously
+    boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
+    
+    filter->set_downstream (downstream ());
+    filter->set_upstream   (this);
     //  Now the new filter is ready to take over delivery.
     
     downstream ()->set_upstream (filter);
@@ -22,20 +29,60 @@ void vnet::Network::push_filter(vnet::Filter& filter)
     //  Given that some filters may rely on being present in both endpoints
     //    (e.g. a compressing/uncompressing filter),
     //    these should be set-up off-line.
-}
+};
 
-vnet::Filter * vnet::Network::pop_filter()
+void vnet::Network::push_back (const std::string &filter_name)
 {
-    if (downstream()->downstream() == NULL)
-        throw std::runtime_error ("No filters left to remove");
+    Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name));
     
-    Stage * const old_next = downstream();
+    //  Prevent several stage modifications simultaneously
+    boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
     
-    set_downstream (*downstream()->downstream());
-    downstream()->set_upstream(*this);
+    Stage *last = downstream();
     
-    return boost::polymorphic_downcast<Filter*>(old_next);
-}
+    //  skip to last stage (i.e. the transport)
+    while (last->downstream() != NULL)
+        last = last->downstream();
+    
+    filter->set_downstream (last);
+    filter->set_upstream   (last->upstream());
+    //  Now the new filter is ready to take over delivery.
+    
+    last->set_upstream (filter);
+    //  Inbound packets already use the new filter, but outbound not yet.
+    
+    filter->upstream()->set_downstream (filter);
+    //  Restructuring is complete.
+    
+    //  Given that some filters may rely on being present in both endpoints
+    //    (e.g. a compressing/uncompressing filter),
+    //    these should be set-up off-line.
+};
+
+void vnet::Network::remove_filter (const std::string &filter_name)
+{
+    //  Prevent several stage modifications simultaneously
+    boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
+    
+    Stage *target = NULL;
+    
+    for (Stage *s = downstream(); s->downstream() != NULL; s = s->downstream()) {
+        if (s->name() == filter_name) {
+            target = s;
+            break;
+        }
+    }
+    
+    if (!target)
+        throw std::runtime_error ("remove_filter: " + filter_name + "not found");
+    
+    target->upstream()->set_downstream(target->downstream());
+    target->downstream()->set_upstream(target->upstream());
+    
+    // target is out of chain, but there could be packets going through still!
+    // So this should fail in the tests:
+    delete target;
+};
 
 vnet::LocalClientConnectionRef vnet::Network::open(const NodeId &id, const Channel &channel)
 {
@@ -55,7 +102,7 @@ vnet::LocalClientConnectionRef vnet::Network::open(const NodeId &id, const Chann
     boost::upgrade_to_unique_lock<boost::shared_mutex> rw_lock (ro_lock);
     
     // Add the connection to the list.
-    LocalClientConnectionRef new_conn (new LocalClientConnection (id, *this));
+    LocalClientConnectionRef new_conn (new LocalClientConnection (id, this));
     clients_.insert (IdConnectionElem (IdChannel (id, channel), new_conn));
     
     // Add the client id to the channel list.

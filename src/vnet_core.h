@@ -23,17 +23,16 @@ namespace vnet {
 
 class Network : public Stage {
 public:
-  Network (Transport &downstream);
+  Network (const std::string &transport_name);
   // Simple constructor for testing with a single transport
   
-  void push_filter (Filter &filter);
-  // Prepend a filter to the stage chain.
-  // That is, this will be the first to be applied to outbound messages,
-  //   and the last one for incoming messages.
-  // This call is thread-safe and can be used online.
+  //  Add a filter in the most upstream position
+  void push_front (const std::string &filter_name);
   
-  Filter * pop_filter ();
-  // Remove first filter in the chain
+  //  Add a filter in the most downstream position
+  void push_back (const std::string &filter_name);
+  
+  void remove_filter (const std::string &filter_name);
   
   LocalClientConnectionRef open (const NodeId &id, const Channel &channel);
   //  Only one client per [id, channel] right now
@@ -41,8 +40,9 @@ public:
   virtual void send     (const Message &msg, const Envelope &meta);
   virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver);
   
-private:    
+  virtual std::string name () const { return "core"; };
   
+private:    
   // Helper class to index open connections
   class IdChannel {
   public:

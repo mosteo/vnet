@@ -15,6 +15,9 @@ public:
         generator_ (seed), 
         uniform_dist_ (0.0, 1.0),
         rnd_ (generator_, uniform_dist_) { };    
+        
+    static const std::string name_;
+    virtual std::string name () const { return name_; };
     
 protected:
     virtual bool accept_send    (const Message &msg, const Envelope &meta) const { return true; };

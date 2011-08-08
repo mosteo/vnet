@@ -1,6 +1,8 @@
 #include <boost/foreach.hpp>
 #include "vnet_localtransport.h"
 
+const std::string vnet::LocalTransport::name_ = "local";
+
 void vnet::LocalTransport::send (const vnet::Message& msg, const vnet::Envelope& meta)
 {
     switch (meta.receiver ().kind ()) {    

@@ -16,7 +16,9 @@ namespace vnet {
   // UNIQUE per id,channel, that is, only one listener per entity and channel.
   class LocalClientConnection : Stage {
   public:
-    LocalClientConnection (const NodeId &id, Stage &downstream) : Stage (), id_ (id) { set_downstream (downstream); };
+    LocalClientConnection (const NodeId &id, Stage *downstream) : Stage (), id_ (id) { set_downstream (downstream); };
+    
+    virtual std::string name () const { return "local client"; };
     
     void send      (const Destination &dest,                       const Message &msg);
     //  Generic sending to some destination

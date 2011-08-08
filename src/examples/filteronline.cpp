@@ -1,3 +1,4 @@
+#include <boost/array.hpp>
 #include <boost/random.hpp>
 #include <boost/thread.hpp>
 #include <exception>
@@ -5,7 +6,9 @@
 
 #include "vnet.h"
 #include "../filters/vnet_randomfilter.h"
+#include "../filters/vnet_filters.h"
 #include "../transports/vnet_localtransport.h"
+#include "../transports/vnet_transports.h"
 
 using namespace vnet;
 
@@ -17,7 +20,7 @@ using namespace vnet;
 
 LocalTransport local_transport;
 RandomFilter   rnd_filter (0.05, 0);
-Network        net (local_transport);
+Network        *net;
 
 boost::array<NodeId, 2> sender_ids   = {{"Ari", "Ben"}};
 const NodeId receiver_id = "Zak";
@@ -32,7 +35,7 @@ void sender (int index) {
   
     std::cout << "Sender " << sender_id << " starting..." << std::endl;
     
-    LocalClientConnectionRef conn = net.open (sender_id, channel);
+    LocalClientConnectionRef conn = net->open (sender_id, channel);
     
     boost::mt19937 gen (index);
     boost::uniform_int<> dist (50, 99);
@@ -64,7 +67,7 @@ void receiver () {
         
         std::cout << "Receiver starting..." << std::endl;
         
-        LocalClientConnectionRef conn = net.open (receiver_id, channel);
+        LocalClientConnectionRef conn = net->open (receiver_id, channel);
         
         while (true) {            
             const ParcelRef parcel = conn->receive ();
@@ -85,8 +88,13 @@ void receiver () {
 }
 
 int main(int argc, char **argv) {
+    
+    vnet::filter::register_all();
+    vnet::transport::register_all ();      
+    
+    net = new Network (LocalTransport::name_);
   
-    net.push_filter (rnd_filter);
+    net->push_front (RandomFilter::name_);
     
     std::cout << "vnet-filter-local started, accepting connections..." << std::endl;
     
@@ -96,10 +104,14 @@ int main(int argc, char **argv) {
     
     // Insert and remove the filter every 20ms
     while (true) {
-        net.pop_filter ();
+        net->remove_filter (RandomFilter::name_);
         boost::this_thread::sleep (boost::posix_time::milliseconds (20));        
-        net.push_filter(rnd_filter);
+        net->push_front (RandomFilter::name_);
+        boost::this_thread::sleep (boost::posix_time::milliseconds (20));  
+        net->remove_filter (RandomFilter::name_);
         boost::this_thread::sleep (boost::posix_time::milliseconds (20));        
+        net->push_back (RandomFilter::name_);
+        boost::this_thread::sleep (boost::posix_time::milliseconds (20));
     }
     
     sender1.join();

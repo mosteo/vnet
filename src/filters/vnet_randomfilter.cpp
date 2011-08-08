@@ -3,6 +3,8 @@
 
 using namespace vnet;
 
+const std::string vnet::RandomFilter::name_ = "random drop";
+
 bool RandomFilter::accept_receive(const vnet::Message& msg, const vnet::Envelope& meta, const vnet::NodeId& receiver) const
 {
     const double p_keep_byte = 1.0 - pdrop_;
