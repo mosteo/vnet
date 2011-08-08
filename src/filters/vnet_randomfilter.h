@@ -1,6 +1,7 @@
 #ifndef VNET_VNET_RANDOMFILTER_H
 #define VNET_VNET_RANDOMFILTER_H
 
+#include "boost/program_options.hpp"
 #include "boost/random.hpp"
 #include "vnet_stage.h"
 
@@ -8,13 +9,22 @@ namespace vnet {
 
 class RandomFilter : public Filter
 {
-public:
+public:        
     RandomFilter (double pdrop = 0.0, uint32_t seed = 0) :
-    // Probability of dropping a packet, per byte of length
+        // Probability of dropping a packet, per byte of length
         pdrop_ (pdrop), 
         generator_ (seed), 
         uniform_dist_ (0.0, 1.0),
         rnd_ (generator_, uniform_dist_) { };    
+                
+    // Constant strings to be somehow moved out of the way in future patch
+    // Most likely, each Stage should provide a default variables_map and some constants.
+    // Although this way, the constructor documents the options already...
+    RandomFilter (const boost::program_options::variables_map &vm) : 
+        pdrop_     (vm["pdrop"].as<double>()), 
+        generator_ (vm["seed"].as<int>()), 
+        uniform_dist_ (0.0, 1.0),
+        rnd_ (generator_, uniform_dist_) {};
         
     static const std::string name_;
     virtual std::string name () const { return name_; };

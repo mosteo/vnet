@@ -2,6 +2,7 @@
 #define vnet_stage_h_
 
 #include <boost/functional/factory.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include <map>
 #include "vnet_message.h"
 #include "vnet_support.h"
@@ -18,7 +19,11 @@ namespace vnet {
 
     class Stage {
     public:
+        // Plain constructor
         Stage () : upstream_ (NULL), downstream_ (NULL) {};      
+        
+        // Constructor with options, for filters and future transports.
+        Stage (const boost::program_options::variables_map &vm) : upstream_ (NULL), downstream_ (NULL) {};      
         
         //  To allow identification of stages by name
         virtual std::string name () const = 0;
@@ -67,11 +72,12 @@ namespace vnet {
         template <typename SomeStage>
         static void register_stage(const std::string name);
         
-        static Stage * create(const std::string name);
+        static Stage * create(const std::string name, 
+                              const boost::program_options::variables_map &vm);
         
     private:
         //  The stage factory. Not thread-safe for now.
-        typedef boost::function<Stage * ()> StageConstructor;
+        typedef boost::function<Stage * (const boost::program_options::variables_map &)> StageConstructor;
         static std::map<const std::string, StageConstructor> factory_;                    
     };
     

@@ -1,6 +1,6 @@
 set(CMAKE_CXX_FLAGS "-g -Wall -O2")
 
-find_package(Boost 1.43 COMPONENTS thread REQUIRED) # 1.43 because of boost::factory
+find_package(Boost 1.43 COMPONENTS thread program_options REQUIRED) # 1.43 because of boost::factory
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIRS})
 

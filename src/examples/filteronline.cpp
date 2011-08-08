@@ -18,8 +18,6 @@ using namespace vnet;
 
 //  An example filter is constantly added and removed in order to test online reconfiguration
 
-LocalTransport local_transport;
-RandomFilter   rnd_filter (0.05, 0);
 Network        *net;
 
 boost::array<NodeId, 2> sender_ids   = {{"Ari", "Ben"}};
@@ -87,14 +85,25 @@ void receiver () {
     }
 }
 
-int main(int argc, char **argv) {
+namespace po = boost::program_options;
+
+typedef std::pair<std::string, po::variable_value> option;
+
+int main(int argc, char **argv) {        
     
     vnet::filter::register_all();
-    vnet::transport::register_all ();      
+    vnet::transport::register_all ();    
+    
+    po::variables_map options;
+    po::variable_value pdrop (0.05, false);
+    po::variable_value seed (0, false);
+    
+    options.insert (option ("pdrop", pdrop));
+    options.insert (option ("seed",  seed));
     
     net = new Network (LocalTransport::name_);
   
-    net->push_front (RandomFilter::name_);
+    net->push_front (RandomFilter::name_, options);
     
     std::cout << "vnet-filter-local started, accepting connections..." << std::endl;
     
@@ -102,15 +111,21 @@ int main(int argc, char **argv) {
     boost::thread sender2   (sender, 1);
     boost::thread receiver1 (receiver);          
     
+    int counter = 0;
+    
     // Insert and remove the filter every 20ms
     while (true) {
+        //  Change seed so each iteration the filter acts differently
+        options.erase ("seed");
+        options.insert (option ("seed",  po::variable_value (counter++, false)));
+        
         net->remove_filter (RandomFilter::name_);
         boost::this_thread::sleep (boost::posix_time::milliseconds (20));        
-        net->push_front (RandomFilter::name_);
+        net->push_front (RandomFilter::name_, options);
         boost::this_thread::sleep (boost::posix_time::milliseconds (20));  
         net->remove_filter (RandomFilter::name_);
         boost::this_thread::sleep (boost::posix_time::milliseconds (20));        
-        net->push_back (RandomFilter::name_);
+        net->push_back (RandomFilter::name_, options);
         boost::this_thread::sleep (boost::posix_time::milliseconds (20));
     }
     

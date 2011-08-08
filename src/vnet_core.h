@@ -1,6 +1,7 @@
 #ifndef vnet_core_h_
 #define vnet_core_h_
 
+#include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <map>
@@ -27,10 +28,12 @@ public:
   // Simple constructor for testing with a single transport
   
   //  Add a filter in the most upstream position
-  void push_front (const std::string &filter_name);
+  void push_front (const std::string &filter_name,
+                   const boost::program_options::variables_map &vm = boost::program_options::variables_map ());
   
   //  Add a filter in the most downstream position
-  void push_back (const std::string &filter_name);
+  void push_back (const std::string &filter_name,
+                  const boost::program_options::variables_map &vm = boost::program_options::variables_map ());
   
   void remove_filter (const std::string &filter_name);
   

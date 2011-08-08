@@ -22,10 +22,11 @@ void vnet::Filter::received(const vnet::Message& msg, const vnet::Envelope& meta
 
 std::map<const std::string, vnet::StageFactory::StageConstructor> vnet::StageFactory::factory_;
 
-Stage * vnet::StageFactory::create (const std::string name) 
+Stage * vnet::StageFactory::create (const std::string name, 
+                                    const boost::program_options::variables_map &vm) 
 { 
     if (factory_.find (name) != factory_.end ())
-        return factory_[name](); 
+        return factory_[name](vm); 
     else 
         throw std::runtime_error (name + ": Stage not registered in factory.");
 }

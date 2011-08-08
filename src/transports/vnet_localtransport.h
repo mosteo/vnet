@@ -9,8 +9,10 @@ namespace vnet {
  
     class LocalTransport : public Transport {
     public:
+        LocalTransport (const boost::program_options::variables_map &vm) {};
+        
         static const std::string name_;
-        virtual std::string name () const { return name_; };
+        virtual std::string name () const { return name_; };                
         
         virtual void send     (const Message &msg, const Envelope &meta);
         virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver);

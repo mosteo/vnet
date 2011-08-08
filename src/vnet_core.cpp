@@ -4,14 +4,15 @@
 
 vnet::Network::Network (const std::string &transport_name) : Stage (), centralized_ (true) 
 { 
-  Transport *transport = boost::polymorphic_downcast<Transport *>(StageFactory::create(transport_name));    
+  Transport *transport = boost::polymorphic_downcast<Transport *>(StageFactory::create(transport_name, boost::program_options::variables_map()));    
   set_downstream (transport); 
   transport->set_upstream (this);
 };
 
-void vnet::Network::push_front (const std::string &filter_name)
+void vnet::Network::push_front (const std::string &filter_name,
+                                const boost::program_options::variables_map &vm)
 {
-    Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name));
+    Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name, vm));
  
     //  Prevent several stage modifications simultaneously
     boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
@@ -31,9 +32,10 @@ void vnet::Network::push_front (const std::string &filter_name)
     //    these should be set-up off-line.
 };
 
-void vnet::Network::push_back (const std::string &filter_name)
+void vnet::Network::push_back (const std::string &filter_name,
+                               const boost::program_options::variables_map &vm)
 {
-    Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name));
+    Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name, vm));
     
     //  Prevent several stage modifications simultaneously
     boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
