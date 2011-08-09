@@ -28,7 +28,7 @@ void vnet::LocalTransport::send (const vnet::Message& msg, const vnet::Envelope&
 
 void vnet::LocalTransport::received(const vnet::Message& msg, const vnet::Envelope& meta, const vnet::NodeId& receiver)
 {
-    Stage * const next = upstream ();
+    StageRef next = upstream ();
     
     if (next)
         next->received (msg, meta, receiver);

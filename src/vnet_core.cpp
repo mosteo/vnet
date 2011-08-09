@@ -2,11 +2,15 @@
 #include "vnet_core.h"
 #include <boost/thread/locks.hpp>
 
-vnet::Network::Network (const std::string &transport_name) : Stage (), centralized_ (true) 
+vnet::Network::Network (const std::string &transport_name) : Stage (), self_ (this), centralized_ (true) 
 { 
-  Transport *transport = boost::polymorphic_downcast<Transport *>(StageFactory::create(transport_name, boost::program_options::variables_map()));    
+  // TODO: self_(this) should use a null disposer, since the instance can be in the stack; and in any case someone else is managing it.
+  // Not likely to be a problem soon, as long as networks are created once for the life of the run.
+  
+  StageRef transport = boost::dynamic_pointer_cast<Transport>(StageFactory::create(transport_name, boost::program_options::variables_map()));
+  
   set_downstream (transport); 
-  transport->set_upstream (this);
+  transport->set_upstream (self_);
 };
 
 void vnet::Network::add_filter (const std::string &filter_name,
@@ -15,13 +19,13 @@ void vnet::Network::add_filter (const std::string &filter_name,
 {
     assert (pos > 0);
     
-    Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name, vm));
+    StageRef filter = boost::dynamic_pointer_cast<Filter>(StageFactory::create(filter_name, vm));
  
     //  Prevent several stage modifications simultaneously
     boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
     
-    Stage *next = this->downstream();
-    int    idx  = pos - 1;
+    StageRef next = this->downstream();
+    int      idx  = pos - 1;
     
     while (idx--) {
         if (next->downstream() == NULL)
@@ -48,10 +52,10 @@ void vnet::Network::remove_filter (const std::string &filter_name, const int aft
     //  Prevent several stage modifications simultaneously
     boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
     
-    Stage *target = NULL;
+    StageRef target;
     int idx = 1;
     
-    for (Stage *s = downstream(); s->downstream() != NULL; s = s->downstream(), idx++) {
+    for (StageRef s = downstream(); s->downstream() != NULL; s = s->downstream(), idx++) {
         if ((idx > after) && (s->name() == filter_name)) {
             target = s;
             break;
@@ -64,9 +68,8 @@ void vnet::Network::remove_filter (const std::string &filter_name, const int aft
     target->upstream()->set_downstream(target->downstream());
     target->downstream()->set_upstream(target->upstream());
     
-    // target is out of chain, but there could be packets going through still!
-    // So this should fail in the tests (though it doesn't, why?)
-    delete target;
+    // Target now holds the last reference to the removed Stage, unless it is temporarily retained in some delivery.
+    // In any case, after all refs go out of scope, the now-unused Stage will be freed.
 };
 
 vnet::LocalClientConnectionRef vnet::Network::open(const NodeId &id, const Channel &channel)
@@ -87,7 +90,7 @@ vnet::LocalClientConnectionRef vnet::Network::open(const NodeId &id, const Chann
     boost::upgrade_to_unique_lock<boost::shared_mutex> rw_lock (ro_lock);
     
     // Add the connection to the list.
-    LocalClientConnectionRef new_conn (new LocalClientConnection (id, this));
+    LocalClientConnectionRef new_conn (new LocalClientConnection (id, self_));
     clients_.insert (IdConnectionElem (IdChannel (id, channel), new_conn));
     
     // Add the client id to the channel list.

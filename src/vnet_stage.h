@@ -3,6 +3,7 @@
 
 #include <boost/functional/factory.hpp>
 #include <boost/program_options/variables_map.hpp>
+#include <boost/shared_ptr.hpp>
 #include <map>
 #include "vnet_message.h"
 #include "vnet_support.h"
@@ -17,13 +18,16 @@ namespace vnet {
 // It's after the "transport" stage that messages have a single recipient.
 // (The original recipients are however given so a node can know that it's not the only recipient).
 
+    class Stage;
+    typedef boost::shared_ptr<Stage> StageRef;
+
     class Stage {
     public:
         // Plain constructor
-        Stage () : upstream_ (NULL), downstream_ (NULL) {};      
+        Stage () : upstream_ (StageRef()), downstream_ (StageRef()) {};      
         
         // Constructor with options, for filters and future transports.
-        Stage (const boost::program_options::variables_map &vm) : upstream_ (NULL), downstream_ (NULL) {};      
+        Stage (const boost::program_options::variables_map &vm) : upstream_ (StageRef()), downstream_ (StageRef()) {};      
         
         //  To allow identification of stages by name
         virtual std::string name () const = 0;
@@ -32,18 +36,18 @@ namespace vnet {
         virtual void received (const Message &msg, const Envelope &meta, const NodeId &receiver) = 0;        
         
         //  These setters are thread-safe
-        void set_upstream   (Stage *upstream)   { upstream_  .set (upstream);   };
-        void set_downstream (Stage *downstream) { downstream_.set (downstream); };
+        void set_upstream   (StageRef upstream)   { upstream_  .set (upstream);   };
+        void set_downstream (StageRef downstream) { downstream_.set (downstream); };
         
         virtual ~Stage() {};
 
         //  These accessors are thread-safe
-        Stage *upstream()   const { return upstream_  .get (); };
-        Stage *downstream() const { return downstream_.get (); };
+        StageRef upstream  () const { return upstream_  .get (); };
+        StageRef downstream() const { return downstream_.get (); };
     
     private:  
-        atomic<Stage *> upstream_  ;
-        atomic<Stage *> downstream_;
+        atomic<StageRef> upstream_  ;
+        atomic<StageRef> downstream_;
     };
 
     
@@ -72,11 +76,12 @@ namespace vnet {
         template <typename SomeStage>
         static void register_stage(const std::string name);
         
-        static Stage * create(const std::string name, 
-                              const boost::program_options::variables_map &vm);
+        static StageRef create(const std::string name, 
+                               const boost::program_options::variables_map &vm);
         
     private:
-        //  The stage factory. Not thread-safe for now.
+        //  The stage factory.
+        //  TODO: make it thread-safe?
         typedef boost::function<Stage * (const boost::program_options::variables_map &)> StageConstructor;
         static std::map<const std::string, StageConstructor> factory_;                    
     };

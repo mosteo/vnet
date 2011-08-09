@@ -43,7 +43,11 @@ public:
   
   virtual std::string name () const { return "core"; };
   
-private:    
+private:
+  StageRef self_; 
+  // Self-reference to pass to other stages.
+  // Also avoids premature freeing when a filter holds the only ref to this.
+    
   // Helper class to index open connections
   class IdChannel {
   public:
