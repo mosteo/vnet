@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
     
     net = new Network (LocalTransport::name_);
   
-    net->push_front (RandomFilter::name_, options);
+    net->add_filter (RandomFilter::name_, options);
     
     std::cout << "vnet-filter-local started, accepting connections..." << std::endl;
     
@@ -121,11 +121,7 @@ int main(int argc, char **argv) {
         
         net->remove_filter (RandomFilter::name_);
         boost::this_thread::sleep (boost::posix_time::milliseconds (20));        
-        net->push_front (RandomFilter::name_, options);
-        boost::this_thread::sleep (boost::posix_time::milliseconds (20));  
-        net->remove_filter (RandomFilter::name_);
-        boost::this_thread::sleep (boost::posix_time::milliseconds (20));        
-        net->push_back (RandomFilter::name_, options);
+        net->add_filter (RandomFilter::name_, options);
         boost::this_thread::sleep (boost::posix_time::milliseconds (20));
     }
     

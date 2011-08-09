@@ -27,13 +27,10 @@ public:
   Network (const std::string &transport_name);
   // Simple constructor for testing with a single transport
   
-  //  Add a filter in the most upstream position
-  void push_front (const std::string &filter_name,
-                   const boost::program_options::variables_map &vm = boost::program_options::variables_map ());
-  
-  //  Add a filter in the most downstream position
-  void push_back (const std::string &filter_name,
-                  const boost::program_options::variables_map &vm = boost::program_options::variables_map ());
+  //  Add a filter in the given position (first one when outbound by default
+  void add_filter (const std::string &filter_name,
+                   const boost::program_options::variables_map &vm = boost::program_options::variables_map (),
+                   const int pos = 1);
   
   void remove_filter (const std::string &filter_name);
   

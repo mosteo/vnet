@@ -9,51 +9,33 @@ vnet::Network::Network (const std::string &transport_name) : Stage (), centraliz
   transport->set_upstream (this);
 };
 
-void vnet::Network::push_front (const std::string &filter_name,
-                                const boost::program_options::variables_map &vm)
+void vnet::Network::add_filter (const std::string &filter_name,
+                                const boost::program_options::variables_map &vm,
+                                const int pos)
 {
+    assert (pos > 0);
+    
     Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name, vm));
  
     //  Prevent several stage modifications simultaneously
     boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
     
-    filter->set_downstream (downstream ());
-    filter->set_upstream   (this);
+    Stage *next = this->downstream();
+    int    idx  = pos - 1;
+    
+    while (idx--) {
+        if (next->downstream() == NULL)
+            throw std::runtime_error ("Not enough filters to satisfy position");
+    }
+    
+    filter->set_downstream (next);
+    filter->set_upstream   (next->upstream());
     //  Now the new filter is ready to take over delivery.
     
-    downstream ()->set_upstream (filter);
+    next->set_upstream (filter);
     //  Inbound packets already use the new filter, but outbound not yet.
     
-    set_downstream (filter);
-    //  Restructuring is complete.
-    
-    //  Given that some filters may rely on being present in both endpoints
-    //    (e.g. a compressing/uncompressing filter),
-    //    these should be set-up off-line.
-};
-
-void vnet::Network::push_back (const std::string &filter_name,
-                               const boost::program_options::variables_map &vm)
-{
-    Filter * filter = boost::polymorphic_downcast<Filter *>(StageFactory::create(filter_name, vm));
-    
-    //  Prevent several stage modifications simultaneously
-    boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
-    
-    Stage *last = downstream();
-    
-    //  skip to last stage (i.e. the transport)
-    while (last->downstream() != NULL)
-        last = last->downstream();
-    
-    filter->set_downstream (last);
-    filter->set_upstream   (last->upstream());
-    //  Now the new filter is ready to take over delivery.
-    
-    last->set_upstream (filter);
-    //  Inbound packets already use the new filter, but outbound not yet.
-    
-    filter->upstream()->set_downstream (filter);
+    filter->upstream ()->set_downstream(filter);
     //  Restructuring is complete.
     
     //  Given that some filters may rely on being present in both endpoints
@@ -82,7 +64,7 @@ void vnet::Network::remove_filter (const std::string &filter_name)
     target->downstream()->set_upstream(target->upstream());
     
     // target is out of chain, but there could be packets going through still!
-    // So this should fail in the tests:
+    // So this should fail in the tests (though it doesn't, why?)
     delete target;
 };
 
