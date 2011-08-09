@@ -32,7 +32,8 @@ public:
                    const boost::program_options::variables_map &vm = boost::program_options::variables_map (),
                    const int pos = 1);
   
-  void remove_filter (const std::string &filter_name);
+  //  Removes first instance with this name, after pos (1st filter = 1)
+  void remove_filter (const std::string &filter_name, const int after = 0);
   
   LocalClientConnectionRef open (const NodeId &id, const Channel &channel);
   //  Only one client per [id, channel] right now

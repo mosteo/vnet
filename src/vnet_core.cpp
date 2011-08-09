@@ -43,22 +43,23 @@ void vnet::Network::add_filter (const std::string &filter_name,
     //    these should be set-up off-line.
 };
 
-void vnet::Network::remove_filter (const std::string &filter_name)
+void vnet::Network::remove_filter (const std::string &filter_name, const int after)
 {
     //  Prevent several stage modifications simultaneously
     boost::unique_lock<boost::shared_mutex> lock (clients_mutex_);
     
     Stage *target = NULL;
+    int idx = 1;
     
-    for (Stage *s = downstream(); s->downstream() != NULL; s = s->downstream()) {
-        if (s->name() == filter_name) {
+    for (Stage *s = downstream(); s->downstream() != NULL; s = s->downstream(), idx++) {
+        if ((idx > after) && (s->name() == filter_name)) {
             target = s;
             break;
         }
     }
     
     if (!target)
-        throw std::runtime_error ("remove_filter: " + filter_name + "not found");
+        throw std::runtime_error ("remove_filter: " + filter_name + " not found after pos " + boost::lexical_cast<std::string>(after));
     
     target->upstream()->set_downstream(target->downstream());
     target->downstream()->set_upstream(target->upstream());
