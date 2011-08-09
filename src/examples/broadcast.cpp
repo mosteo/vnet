@@ -1,10 +1,10 @@
+#include <boost/array.hpp>
 #include <boost/random.hpp>
 #include <boost/thread.hpp>
 #include <exception>
 #include <iostream>
 
-#include "../vnet.h"
-#include "../transports/vnet_localtransport.h"
+#include "vnet.h"
 
 using namespace vnet;
 
@@ -12,8 +12,7 @@ using namespace vnet;
 //  Two example clients are created as new threads.
 //  Local delivery and client connections are shown.
 
-LocalTransport local_transport;
-Network        net (local_transport);
+Network *net;
 
 boost::array<NodeId, 2> receiver_ids = {{"Ari", "Ben"}};
 const NodeId            sender_id    = "Zak";
@@ -25,7 +24,7 @@ void sender () {
   try {          
     std::cout << "Sender " << sender_id << " starting..." << std::endl;
     
-    LocalClientConnectionRef conn = net.open (sender_id, channel);
+    LocalClientConnectionRef conn = net->open (sender_id, channel);
     
     boost::mt19937 gen (std::time (0));
     boost::uniform_int<> dist (350, 750);
@@ -59,7 +58,7 @@ void receiver (int index) {
         
         std::cout << "Receiver " << receiver_id << " starting..." << std::endl;
         
-        LocalClientConnectionRef conn = net.open (receiver_id, channel);
+        LocalClientConnectionRef conn = net->open (receiver_id, channel);
         
         while (true) {            
             const ParcelRef parcel = conn->receive ();
@@ -82,6 +81,10 @@ void receiver (int index) {
 }
 
 int main(int argc, char **argv) {
+    
+    vnet::transport::register_all ();  
+    
+    net = new Network (LocalTransport::name_);
   
     std::cout << "vNet started, accepting connections..." << std::endl;
     

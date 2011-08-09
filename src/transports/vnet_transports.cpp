@@ -1,5 +1,4 @@
 #include "vnet_stage.h"
-#include "vnet_localtransport.h"
 #include "vnet_transports.h"
 
 using namespace vnet;

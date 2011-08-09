@@ -1,5 +1,4 @@
 #include "vnet_stage.h"
-#include "vnet_randomfilter.h"
 #include "vnet_filters.h"
 
 using namespace vnet;

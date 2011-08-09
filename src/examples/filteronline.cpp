@@ -5,10 +5,6 @@
 #include <iostream>
 
 #include "vnet.h"
-#include "../filters/vnet_randomfilter.h"
-#include "../filters/vnet_filters.h"
-#include "../transports/vnet_localtransport.h"
-#include "../transports/vnet_transports.h"
 
 using namespace vnet;
 
