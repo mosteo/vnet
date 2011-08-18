@@ -1,5 +1,5 @@
-vHub is a virtual system which let the system routes / drops / delays the
-message, at an high level (in the ISO stack).
+vNet is a virtual network system which lets the system route / drop / delay the
+message, at a high level (in the ISO stack).
 
 In a first step, we plan to implement it to deal with :
 	- a protocol on top of YARP [1]
